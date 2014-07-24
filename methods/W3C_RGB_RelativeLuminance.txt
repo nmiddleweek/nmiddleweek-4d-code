@@ -1,0 +1,57 @@
+  // Method: W3C_RGB_RelativeLuminance
+  // Nick Middleweek - I've just converted this from
+  // the W3C recommended formula so can't really (c) it.
+  // GITHUB: https://github.com/nmiddleweek/nmiddleweek-4d-code
+  //
+  // Notes: You'll need a HexStr_to_Dec Method.
+  // 
+  // Calculate the Relative Luminance in sRGB
+  // colour space for use in WCAG 2.0 Compliance.
+  // http://www.w3.org/TR/WCAG20/#relativeluminancedef
+
+C_REAL($0;$Return)  // Float: Relative Luminance
+$Return:=0
+C_STRING(7;$1;$hexColour)  // String: Hex Colour (#414141, cecece, FFF, #000)
+$hexColour:=$1
+
+C_STRING(2;$R;$G;$B)
+C_LONGINT($loop)
+ARRAY REAL(components_RGB;3)
+
+
+  // Remove any # prefix
+If ($hexColour[[1]]="#")
+$hexColour:=Substring($hexColour;2)
+End if 
+
+  // If we have a Short hex colour
+If (Length($hexColour)=3)
+$R:=$hexColour[[1]]*2
+$G:=$hexColour[[2]]*2
+$B:=$hexColour[[3]]*2
+$hexColour:=$R+$G+$B
+End if 
+
+If (Length($hexColour)=6)  // We should have RRGGBB, if not just Return
+$R:=Substring($hexColour;1;2)
+$G:=Substring($hexColour;3;2)
+$B:=Substring($hexColour;5;2)
+
+components_RGB{1}:=HexStr_to_Dec ($R)/255
+components_RGB{2}:=HexStr_to_Dec ($G)/255
+components_RGB{3}:=HexStr_to_Dec ($B)/255
+
+For ($loop;1;3)
+If (components_RGB{$loop}<=0.03928)
+components_RGB{$loop}:=components_RGB{$loop}/12.92
+Else 
+components_RGB{$loop}:=((components_RGB{$loop}+0.055)/1.055)^2.4
+End if 
+
+End for 
+
+$Return:=(0.2126*components_RGB{1})+(0.7152*components_RGB{2})+(0.0722*components_RGB{3})
+
+End if 
+
+$0:=$Return
